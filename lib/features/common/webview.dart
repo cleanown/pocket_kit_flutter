@@ -1,15 +1,101 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+/// 网页浏览页面，在页面中央显示加载动画和进度。
 class WebviewPage extends StatefulWidget {
-  const WebviewPage({super.key});
+  /// 创建网页浏览页面，[url] 为需要打开的网页地址。
+  const WebviewPage({super.key, required this.url});
 
+  /// 需要打开的网页地址。
+  final String url;
+
+  /// 创建网页浏览页面的状态。
   @override
   State<WebviewPage> createState() => _WebviewPageState();
 }
 
+/// 管理网页控制器、加载进度及页面展示。
 class _WebviewPageState extends State<WebviewPage> {
+  /// 网页控制器，用于加载传入的网页地址。
+  late InAppWebViewController webViewController;
+
+  /// 当前网页的加载进度，达到 100 时隐藏加载提示。
+  int loadingProgress = 0;
+
+  /// 将加载进度更新为 [progress]，页面销毁后不再刷新界面。
+  void _updateProgress(int progress) {
+    if (!mounted || loadingProgress == progress) return;
+    setState(() {
+      loadingProgress = progress;
+    });
+  }
+
+  /// 构建网页组件，并监听加载进度及主页面加载错误。
+  Widget _buildWebView() {
+    return InAppWebView(
+      // controller 为创建完成的网页控制器，用于加载目标地址。
+      onWebViewCreated: (controller) async {
+        webViewController = controller;
+        await webViewController.loadUrl(
+          urlRequest: URLRequest(url: WebUri(widget.url)),
+        );
+      },
+      // controller 为网页控制器，url 为开始加载的地址，重新加载时重置进度。
+      onLoadStart: (controller, url) => _updateProgress(0),
+      // controller 为网页控制器，progress 为当前加载百分比。
+      onProgressChanged: (controller, progress) => _updateProgress(progress),
+      // controller 为网页控制器，url 为加载完成的地址，完成后隐藏提示。
+      onLoadStop: (controller, url) => _updateProgress(100),
+      // controller 为网页控制器，request 为失败请求，error 为加载错误。
+      onReceivedError: (controller, request, error) {
+        // 仅主页面加载失败时隐藏提示，避免子资源失败中断进度显示。
+        if (request.isForMainFrame == true) {
+          _updateProgress(100);
+        }
+      },
+      // controller 为网页控制器，request 为失败请求，errorResponse 为错误响应。
+      onReceivedHttpError: (controller, request, errorResponse) {
+        // 主页面返回 HTTP 错误时结束加载提示。
+        if (request.isForMainFrame == true) {
+          _updateProgress(100);
+        }
+      },
+    );
+  }
+
+  /// 构建居中的转圈动画和加载百分比，允许触摸事件传递至网页。
+  Widget _buildLoadingIndicator() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Center(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text('加载中 $loadingProgress%'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建网页浏览页面，[context] 为当前页面的构建上下文。
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: Stack(
+        children: [
+          _buildWebView(),
+          if (loadingProgress < 100) _buildLoadingIndicator(),
+        ],
+      ),
+    );
   }
 }
