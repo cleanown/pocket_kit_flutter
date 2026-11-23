@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_kit_flutter/app/router.dart';
+import 'package:pocket_kit_flutter/core/config/app_config.dart';
 import 'package:pocket_kit_flutter/features/common/web_entry.dart';
 import 'package:pocket_kit_flutter/features/common/webview.dart';
 import 'package:pocket_kit_flutter/features/home/pages/home_page.dart';
@@ -46,12 +47,16 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(
-      find.widgetWithText(ElevatedButton, '打开http://192.168.31.52:1102'),
+      find.widgetWithText(ElevatedButton, '打开${AppConfig.h5BaseUrl}'),
     );
     // 使用固定时长推进路由动画，避免持续加载动画导致等待超时。
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(WebviewPage), findsOneWidget);
+    expect(
+      tester.widget<WebviewPage>(find.byType(WebviewPage)).url,
+      AppConfig.h5BaseUrl,
+    );
     expect(find.text('加载中 0%'), findsOneWidget);
 
     await tester.tap(find.byType(FloatingActionButton));

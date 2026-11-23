@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pocket_kit_flutter/core/config/app_config.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,14 +28,15 @@ class _HomePageState extends State<HomePage> {
                 child: const Text('打开网页'),
               ),
               const SizedBox(height: 16),
+              // 按钮显示配置中的 H5 地址，并将同一地址传给 WebView。
               ElevatedButton(
                 onPressed: () => context.push(
                   Uri(
                     path: '/webview',
-                    queryParameters: {'url': 'http://192.168.31.52:1102/'},
+                    queryParameters: {'url': AppConfig.h5BaseUrl},
                   ).toString(),
                 ),
-                child: const Text('打开http://192.168.31.52:1102'),
+                child: const Text('打开${AppConfig.h5BaseUrl}'),
               ),
             ],
           ),
