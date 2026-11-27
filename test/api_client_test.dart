@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pocket_kit_flutter/core/config/app_config.dart';
 import 'package:pocket_kit_flutter/core/network/api_client.dart';
 import 'package:pocket_kit_flutter/core/network/api_exception.dart';
+import 'package:pocket_kit_flutter/core/network/api_result_model.dart';
 import 'package:pocket_kit_flutter/features/status/data/server_status_api.dart';
 
 /// 替换真实服务器，按 [RequestOptions] 模拟后端响应或网络错误。
@@ -62,8 +63,8 @@ void main() {
       return _jsonResponse('{"code":200,"message":"成功","data":{"id":7}}');
     });
 
-    /// 从业务数据中提取的条目编号，测试解码回调获得的是 data 字段。
-    final itemId = await client.request<int>(
+    /// 解码回调从响应的 data 字段提取条目编号。
+    final result = await client.request<int>(
       '/items',
       method: 'POST',
       queryParameters: {'page': 1},
@@ -72,7 +73,10 @@ void main() {
       decode: (data) => (data as Map<String, Object?>)['id'] as int,
     );
 
-    expect(itemId, 7);
+    expect(
+      result,
+      isA<ApiSuccessModel<int>>().having((result) => result.data, '条目编号', 7),
+    );
   });
 
   test('业务成功响应允许 data 为空', () async {
@@ -83,7 +87,11 @@ void main() {
 
     expect(
       await client.request<Object?>('/items', decode: (data) => data),
-      isNull,
+      isA<ApiSuccessModel<Object?>>().having(
+        (result) => result.data,
+        '成功数据',
+        isNull,
+      ),
     );
   });
 
@@ -93,9 +101,11 @@ void main() {
       (_) => _jsonResponse('{"code":1001,"message":"条目已存在"}'),
     );
 
-    await expectLater(
-      client.request<Object?>('/items', decode: (data) => data),
-      throwsA(
+    expect(
+      await client.request<Object?>('/items', decode: (data) => data),
+      isA<ApiFailureModel<Object?>>().having(
+        (result) => result.error,
+        '业务错误',
         isA<ApiException>()
             .having((error) => error.type, '错误类型', ApiErrorType.business)
             .having((error) => error.statusCode, 'HTTP 状态码', 200)
@@ -111,9 +121,11 @@ void main() {
       (_) => _jsonResponse('{"code":401,"message":"请先登录"}', statusCode: 401),
     );
 
-    await expectLater(
-      client.request<Object?>('/items', decode: (data) => data),
-      throwsA(
+    expect(
+      await client.request<Object?>('/items', decode: (data) => data),
+      isA<ApiFailureModel<Object?>>().having(
+        (result) => result.error,
+        'HTTP 错误',
         isA<ApiException>()
             .having((error) => error.type, '错误类型', ApiErrorType.http)
             .having((error) => error.statusCode, 'HTTP 状态码', 401)
@@ -129,14 +141,12 @@ void main() {
       (_) => _jsonResponse('{"code":200,"message":"成功","data":"无数据"}'),
     );
 
-    await expectLater(
-      client.request<int>('/items', decode: (data) => data as int),
-      throwsA(
-        isA<ApiException>().having(
-          (error) => error.type,
-          '错误类型',
-          ApiErrorType.invalidResponse,
-        ),
+    expect(
+      await client.request<int>('/items', decode: (data) => data as int),
+      isA<ApiFailureModel<int>>().having(
+        (result) => result.error.type,
+        '错误类型',
+        ApiErrorType.invalidResponse,
       ),
     );
   });
@@ -152,24 +162,20 @@ void main() {
 
     /// 先取消的令牌会阻止请求到达适配器。
     final cancelToken = CancelToken()..cancel();
-    await expectLater(
-      client.getText('/', cancelToken: cancelToken),
-      throwsA(
-        isA<ApiException>().having(
-          (error) => error.type,
-          '错误类型',
-          ApiErrorType.cancelled,
-        ),
+    expect(
+      await client.getText('/', cancelToken: cancelToken),
+      isA<ApiFailureModel<String>>().having(
+        (result) => result.error.type,
+        '错误类型',
+        ApiErrorType.cancelled,
       ),
     );
-    await expectLater(
-      client.getText('/'),
-      throwsA(
-        isA<ApiException>().having(
-          (error) => error.type,
-          '错误类型',
-          ApiErrorType.timeout,
-        ),
+    expect(
+      await client.getText('/'),
+      isA<ApiFailureModel<String>>().having(
+        (result) => result.error.type,
+        '错误类型',
+        ApiErrorType.timeout,
       ),
     );
   });
@@ -188,6 +194,13 @@ void main() {
       );
     });
 
-    expect(await ServerStatusApi(client: client).getServerStatus(), '服务器运行中');
+    expect(
+      await ServerStatusApi(client: client).getServerStatus(),
+      isA<ApiSuccessModel<String>>().having(
+        (result) => result.data,
+        '服务状态',
+        '服务器运行中',
+      ),
+    );
   });
 }

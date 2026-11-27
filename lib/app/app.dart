@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pocket_kit_flutter/app/router.dart';
+import 'package:pocket_kit_flutter/core/shared/app_toast.dart';
 
 /// 应用入口，统一配置路由和黑白灰简约主题。
 class App extends StatelessWidget {
@@ -20,6 +21,7 @@ class App extends StatelessWidget {
 
     return MaterialApp.router(
       title: "百宝箱",
+      builder: AppToast.buildHost,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,

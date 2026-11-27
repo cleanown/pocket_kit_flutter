@@ -7,6 +7,8 @@
 			<key>NSAllowsArbitraryLoadsInWebContent</key>
 			<true/>
 		</dict>
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>连接局域网中的百宝箱服务，完成账号登录和邮箱验证。</string>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>CFBundleDevelopmentRegion</key>

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pocket_kit_flutter/core/logging/app_logger.dart';
+import 'package:pocket_kit_flutter/core/shared/app_logger.dart';
 
 /// 网页浏览页面，在页面中央显示加载动画和进度。
 class WebviewPage extends StatefulWidget {

@@ -15,7 +15,10 @@
     - 以上限制针对自行定义的变量；Flutter/Dart 必须保留的外部 API 名称不作修改。类名按第 7 条执行。
 9. 图片资源统一放在assets/images/内，命名要合适，避免其他模块图片冲突
 10. 禁止自动提交代码，所有代码都需要人工检查，人工提交
-11. 日志打印统一使用lib/core/logging/app_logger封装的方法，默认使用内部的info打印
+11. 日志打印统一使用 `lib/core/shared/app_logger.dart` 封装的方法，默认使用 `AppLogger.info` 打印
+12. 数据模型定义的文件名同意加后缀_model，里面定义的类型也要加后缀Model
+13. 页面发起网络请求后只处理加载状态和成功结果。业务错误码、HTTP 错误、网络超时或连接失败及响应解析异常统一由 `lib/core/network/api_client.dart` 处理并提示，主动取消请求时静默结束。页面禁止自行捕获或重复提示接口错误，表单输入校验和本地操作失败由页面处理。
+14. 全局弹出式消息提示统一使用 `lib/core/shared/app_toast.dart` 封装的 `AppToast.show()`。提示样式和默认时长由 `AppToast` 统一维护，接口错误提示由 `ApiClient` 调用。
 ### 最终声明
 ```
 该规范适用于整个项目，不论是新增还是修改

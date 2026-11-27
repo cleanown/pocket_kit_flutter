@@ -1,4 +1,4 @@
-/// 页面可识别的接口请求错误类型。
+/// 网络层处理失败时使用的错误类型。
 enum ApiErrorType {
   /// 网络连接失败或证书校验失败。
   connection,
@@ -22,7 +22,7 @@ enum ApiErrorType {
   unknown,
 }
 
-/// 向业务模块和页面提供统一的网络异常。
+/// 保存网络层归一后的错误信息。
 final class ApiException implements Exception {
   /// 创建接口异常，可额外携带响应状态和业务错误码。
   const ApiException({
